@@ -2,11 +2,8 @@ import streamlit as st
 from github import Github
 import streamlit.components.v1 as components
 
-# --- Konfigurasi ---
-st.set_page_config(page_title="Video Hub", layout="wide")
-
-# Menyembunyikan sidebar secara default jika diinginkan bisa dengan config, 
-# tapi di sini kita akan buat script untuk melipatnya setelah 5 detik.
+# Sidebar langsung terlipat agar layar penuh
+st.set_page_config(page_title="Video Hub", layout="wide", initial_sidebar_state="collapsed")
 
 try:
     github_config = st.secrets["github"]
@@ -34,45 +31,27 @@ def save_links(links_list):
 menu = st.sidebar.radio("Navigasi", ["Pemutar Video", "Admin"])
 
 if menu == "Pemutar Video":
-    # Judul dihapus agar space lebih lega
     links = get_links()
-    
     if links:
         video_ids = [link.split("v=")[-1] for link in links]
         playlist_ids = ",".join(video_ids)
         
+        # loop=1 dan playlist memastikan video berulang terus menerus
         html_code = f"""
         <iframe id="video_player" width="100%" height="900" 
-        src="https://www.youtube.com/embed/?playlist={playlist_ids}&autoplay=1&loop=1" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen></iframe>
+        src="https://www.youtube.com/embed/?playlist={playlist_ids}&autoplay=1&loop=1&playlist={playlist_ids}" 
+        frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
         <script>
-            // 1. Fullscreen setelah 5 detik
             setTimeout(function() {{
                 var elem = document.getElementById('video_player');
                 if (elem.requestFullscreen) {{ elem.requestFullscreen(); }}
-            }}, 5000);
-
-            // 2. Melipat sidebar setelah 5 detik
-            // Mencari tombol menu/sidebar dan melakukan klik otomatis
-            setTimeout(function() {{
-                var buttons = window.parent.document.querySelectorAll('button');
-                for (var i = 0; i < buttons.length; i++) {{
-                    // Tombol untuk melipat sidebar biasanya memiliki ikon atau posisi tertentu
-                    if (buttons[i].getAttribute('aria-label') === 'Collapsed') {{
-                        continue;
-                    }}
-                    // Mencoba menekan tombol yang melipat sidebar
-                    buttons[i].click();
-                }}
             }}, 5000);
         </script>
         """
         components.html(html_code, height=950)
     else:
-        st.info("Belum ada link video.")
+        st.info("Playlist kosong. Masuk ke Admin untuk menambah link.")
 
 elif menu == "Admin":
     st.title("⚙️ Panel Admin")
@@ -80,11 +59,11 @@ elif menu == "Admin":
     if password == "123":
         new_link = st.text_input("Link YouTube:")
         if st.button("Simpan"):
-            links = get_links()
-            links.append(new_link)
-            save_links(links)
-            st.rerun()
-        
+            if new_link:
+                links = get_links()
+                links.append(new_link)
+                save_links(links)
+                st.rerun()
         for i, link in enumerate(get_links()):
             col1, col2 = st.columns([0.8, 0.2])
             col1.write(link)
@@ -93,3 +72,5 @@ elif menu == "Admin":
                 links.pop(i)
                 save_links(links)
                 st.rerun()
+    elif password != "":
+        st.error("Password Salah!")
