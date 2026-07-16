@@ -1,29 +1,16 @@
 import streamlit as st
 from github import Github
-import os
-from dotenv import load_dotenv
 
-# Load token dari .env
-load_dotenv()
-token = os.getenv("GITHUB_TOKEN")
-
-st.title("Akses Video dari GitHub Repo")
-
-# Inisialisasi GitHub
-g = Github(token)
-
+# Mengambil data dari secrets Streamlit
+# (Jika di lokal, gunakan file .streamlit/secrets.toml)
 try:
-    # Mengakses repo milik Mas Lian
-    repo = g.get_repo("operansangiang-rs/video_sa")
+    github_config = st.secrets["github"]
+    token = github_config["token"]
+    repo_name = github_config["repo"]
     
-    # Contoh: Mengambil konten file dari repo
-    # Mas Lian bisa mengganti 'video1.mp4' dengan nama file di repo
-    file_content = repo.get_contents("video1.mp4")
+    g = Github(token)
+    repo = g.get_repo(repo_name)
+    st.write(f"Terhubung ke repo: {repo.full_name}")
     
-    st.success("Berhasil terhubung ke GitHub!")
-    
-    # Menampilkan video dari URL download file di GitHub
-    st.video(file_content.download_url, autoplay=True)
-
 except Exception as e:
-    st.error(f"Gagal terhubung atau file tidak ditemukan: {e}")
+    st.error("Pastikan konfigurasi secrets sudah benar di Streamlit Cloud.")
