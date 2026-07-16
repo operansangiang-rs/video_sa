@@ -41,11 +41,26 @@ if menu == "Pemutar Video":
         video_ids = [link.split("v=")[-1] for link in links]
         playlist_ids = ",".join(video_ids)
         
+        # Script HTML dengan allowfullscreen dan auto-fullscreen setelah 5 detik
         html_code = f"""
-        <iframe width="100%" height="500" 
+        <iframe id="video_player" width="100%" height="500" 
         src="https://www.youtube.com/embed/?playlist={playlist_ids}&autoplay=1&loop=1" 
-        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
         allowfullscreen></iframe>
+
+        <script>
+            setTimeout(function() {{
+                var player = document.getElementById('video_player');
+                if (player.requestFullscreen) {{
+                    player.requestFullscreen();
+                }} else if (player.webkitRequestFullscreen) {{ /* Safari */
+                    player.webkitRequestFullscreen();
+                }} else if (player.msRequestFullscreen) {{ /* IE11 */
+                    player.msRequestFullscreen();
+                }}
+            }}, 5000); // 5000 milidetik = 5 detik
+        </script>
         """
         components.html(html_code, height=550)
     else:
