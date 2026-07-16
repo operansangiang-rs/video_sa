@@ -1,0 +1,10 @@
+name: Keep Alive
+on:
+  schedule:
+    - cron: '0 0 * * *' # Ini adalah waktu UTC. Jam 00:00 UTC = Jam 07:00 WIB.
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit App
+        run: curl -I https://video-sa.streamlit.app/
