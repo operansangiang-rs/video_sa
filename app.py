@@ -21,8 +21,11 @@ def get_links():
         return file.decoded_content.decode("utf-8").splitlines()
     except:
         # Jika file belum ada, buat file kosong
-        repo.create_file("links.txt", "Inisialisasi file link", "")
-        return []
+        try:
+            repo.create_file("links.txt", "Inisialisasi file link", "")
+            return []
+        except:
+            return []
 
 def save_links(links_list):
     content = "\n".join(links_list)
@@ -43,6 +46,7 @@ if menu == "Pemutar Video":
         playlist_ids = ",".join(video_ids)
         
         # HTML untuk video dengan fitur looping dan fullscreen
+        # Menggunakan playlist embed agar otomatis pindah ke video berikutnya
         html_code = f"""
         <iframe id="video_player" width="100%" height="900" 
         src="https://www.youtube.com/embed/?playlist={playlist_ids}&autoplay=1&loop=1" 
