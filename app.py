@@ -2,9 +2,9 @@ import streamlit as st
 from github import Github
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Video Hub", layout="wide", initial_sidebar_state="collapsed")
+# Sidebar awal: 'expanded' agar bisa dilihat, lalu dilipat otomatis oleh JS
+st.set_page_config(page_title="Video Hub", layout="wide", initial_sidebar_state="expanded")
 
-# Koneksi ke GitHub
 try:
     github_config = st.secrets["github"]
     g = Github(github_config["token"])
@@ -36,15 +36,28 @@ if menu == "Pemutar Video":
         video_ids = [link.split("v=")[-1] for link in links]
         playlist_ids = ",".join(video_ids)
         
+        # HTML & JS untuk Fullscreen dan Melipat Sidebar
         html_code = f"""
         <iframe id="video_player" width="100%" height="900" 
         src="https://www.youtube.com/embed/?playlist={playlist_ids}&autoplay=1&loop=1" 
         frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        
         <script>
             setTimeout(function() {{
+                // 1. Fullscreen
                 var elem = document.getElementById('video_player');
                 if (elem.requestFullscreen) {{ elem.requestFullscreen(); }}
-            }}, 5000);
+                
+                // 2. Melipat Sidebar otomatis
+                // Mencari tombol lipat sidebar berdasarkan tombol panah (svg path)
+                var buttons = window.parent.document.querySelectorAll('button');
+                for (var i = 0; i < buttons.length; i++) {{
+                    if (buttons[i].innerHTML.includes('polyline') || buttons[i].getAttribute('aria-label') === 'Collapse sidebar') {{
+                        buttons[i].click();
+                        break; 
+                    }}
+                }}
+            }}, 5000); // 5 Detik
         </script>
         """
         components.html(html_code, height=950)
