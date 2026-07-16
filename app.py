@@ -1,7 +1,8 @@
 import streamlit as st
 from github import Github
+import streamlit.components.v1 as components
 
-# Konfigurasi
+# --- Konfigurasi ---
 st.set_page_config(page_title="Video Hub", layout="wide")
 
 try:
@@ -9,10 +10,10 @@ try:
     g = Github(github_config["token"])
     repo = g.get_repo(github_config["repo"])
 except Exception as e:
-    st.error("Konfigurasi GitHub belum diatur.")
+    st.error("Konfigurasi GitHub belum diatur di secrets.")
     st.stop()
 
-# --- Fungsi Pengelola Data di GitHub ---
+# --- Fungsi Pengelola Data ---
 def get_links():
     try:
         file = repo.get_contents("links.txt")
@@ -32,13 +33,23 @@ def save_links(links_list):
 menu = st.sidebar.radio("Navigasi", ["Pemutar Video", "Admin"])
 
 if menu == "Pemutar Video":
-    st.title("📺 Pemutar Video YouTube")
+    st.title("📺 Playlist Video Otomatis")
     links = get_links()
+    
     if links:
-        pilihan = st.selectbox("Pilih video yang ingin diputar:", links)
-        st.video(pilihan) # Autoplay kadang diblokir browser, jadi user klik play sendiri lebih aman
+        # Ekstrak ID video untuk playlist embed
+        video_ids = [link.split("v=")[-1] for link in links]
+        playlist_ids = ",".join(video_ids)
+        
+        html_code = f"""
+        <iframe width="100%" height="500" 
+        src="https://www.youtube.com/embed/?playlist={playlist_ids}&autoplay=1&loop=1" 
+        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen></iframe>
+        """
+        components.html(html_code, height=550)
     else:
-        st.info("Belum ada video. Silakan hubungi admin.")
+        st.info("Belum ada video di playlist. Silakan hubungi admin.")
 
 elif menu == "Admin":
     st.title("⚙️ Panel Admin")
@@ -46,7 +57,7 @@ elif menu == "Admin":
     
     if password == "123":
         st.subheader("Tambah Link Baru")
-        new_link = st.text_input("Paste Link YouTube di sini:")
+        new_link = st.text_input("Paste Link YouTube (format: https://www.youtube.com/watch?v=...):")
         if st.button("Simpan Link"):
             if new_link:
                 links = get_links()
